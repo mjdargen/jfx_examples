@@ -1,3 +1,7 @@
+# Custom ignores
+audio
+[!_]*.java
+
 # Compiled class file
 *.class
 
