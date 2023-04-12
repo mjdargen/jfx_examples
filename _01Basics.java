@@ -13,8 +13,6 @@ public class _01Basics extends Application {
   @Override
   public void start(Stage primaryStage) {
 
-    primaryStage.setTitle("Basic Example");
-
     Label greeting = new Label();
     greeting.setText("What's up?");
 
@@ -28,7 +26,7 @@ public class _01Basics extends Application {
 
     Scene scene = new Scene(vBox, 300, 250);
 
-    primaryStage.setTitle("Hello, World!");
+    primaryStage.setTitle("Basic Example");
     primaryStage.setScene(scene);
     primaryStage.show();
   }

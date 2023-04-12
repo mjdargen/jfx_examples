@@ -3,25 +3,25 @@ package jfx_examples;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 
-public class _00HelloWorld extends Application {
+public class _03Layout extends Application {
 
   @Override
   public void start(Stage primaryStage) {
 
-    Button btn = new Button();
-    btn.setText("Say 'Hello, World!'");
-    btn.setOnAction(e -> System.out.println("Hello, World!"));
+    Label label = new Label();
+    label.setText("To Be Done!");
 
-    VBox vBox = new VBox(btn);
+    VBox vBox = new VBox(20);
+    vBox.getChildren().addAll(label);
     vBox.setAlignment(Pos.CENTER);
 
     Scene scene = new Scene(vBox, 300, 250);
 
-    primaryStage.setTitle("Hello World");
+    primaryStage.setTitle("Layout Example");
     primaryStage.setScene(scene);
     primaryStage.show();
   }

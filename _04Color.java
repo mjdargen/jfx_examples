@@ -9,10 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 
-public class _03Color extends Application {
+public class _04Color extends Application {
   public void start(Stage primaryStage) throws Exception {
-
-    primaryStage.setTitle("Color Example");
 
     // create color picker
     ColorPicker colorPicker = new ColorPicker();
@@ -37,6 +35,7 @@ public class _03Color extends Application {
 
     // set the scene / stage
     Scene scene = new Scene(layout, 400, 800);
+    primaryStage.setTitle("Color Example");
     primaryStage.setScene(scene);
     primaryStage.show();
   }

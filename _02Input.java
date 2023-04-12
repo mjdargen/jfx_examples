@@ -27,8 +27,6 @@ import javafx.scene.paint.Color;
 public class _02Input extends Application {
   public void start(Stage primaryStage) throws Exception {
 
-    primaryStage.setTitle("Input/Control Examples");
-
     // create button
     Button btn = new Button();
     btn.setText("Say 'Hello, World!'");
@@ -141,6 +139,7 @@ public class _02Input extends Application {
 
     // set the scene / stage
     Scene scene = new Scene(layout, 400, 800);
+    primaryStage.setTitle("Input/Control Examples");
     primaryStage.setScene(scene);
     primaryStage.show();
   }
