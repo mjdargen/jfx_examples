@@ -7,7 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
 
-public class _02Main extends Application {
+public class _05Main extends Application {
 
   @Override
   public void start(Stage primaryStage) {
@@ -16,8 +16,11 @@ public class _02Main extends Application {
     btn.setOnAction(e -> System.out.println("Hello World!"));
 
     Button btn2 = new Button();
-    btn2.setText("Show alert");
-    btn2.setOnAction(e -> AlertBox.display("My Title", "alert!"));
+    btn2.setText("Do confirm");
+    btn2.setOnAction(e -> {
+      boolean result = ConfirmBox.display("Confirmation", "Are you sure you want to do this?");
+      System.out.println(result);
+    });
 
     VBox layout = new VBox(20);
     layout.setAlignment(Pos.CENTER);

@@ -8,7 +8,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.scene.control.Label;
 
-public class _03ConfirmBox {
+public class _05ConfirmBox {
 
   static boolean answer;
 

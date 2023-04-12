@@ -2,22 +2,31 @@ package jfx_examples;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 
 public class _01Basics extends Application {
 
   @Override
   public void start(Stage primaryStage) {
+
+    primaryStage.setTitle("Basic Example");
+
+    Label greeting = new Label();
+    greeting.setText("What's up?");
+
     Button btn = new Button();
     btn.setText("Say 'Hello, World!'");
     btn.setOnAction(e -> System.out.println("Hello, World!"));
 
-    StackPane root = new StackPane();
-    root.getChildren().add(btn);
+    VBox vBox = new VBox(20);
+    vBox.getChildren().addAll(greeting, btn);
+    vBox.setAlignment(Pos.CENTER);
 
-    Scene scene = new Scene(root, 300, 250);
+    Scene scene = new Scene(vBox, 300, 250);
 
     primaryStage.setTitle("Hello, World!");
     primaryStage.setScene(scene);

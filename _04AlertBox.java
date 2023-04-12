@@ -8,7 +8,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.scene.control.Label;
 
-public class _02AlertBox {
+public class _04AlertBox {
 
   public static void display(String title, String message) {
     Stage window = new Stage();
