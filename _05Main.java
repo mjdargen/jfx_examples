@@ -18,7 +18,7 @@ public class _05Main extends Application {
 
     Button btn2 = new Button();
     btn2.setText("Show alert");
-    btn2.setOnAction(e -> AlertBox.display("My Title", "alert!"));
+    btn2.setOnAction(e -> _05AlertBox.display("My Title", "alert!"));
 
     VBox layout = new VBox(20);
     layout.setAlignment(Pos.CENTER);

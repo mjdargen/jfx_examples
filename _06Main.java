@@ -19,7 +19,7 @@ public class _06Main extends Application {
     Button btn2 = new Button();
     btn2.setText("Do confirm");
     btn2.setOnAction(e -> {
-      boolean result = ConfirmBox.display("Confirmation", "Are you sure you want to do this?");
+      boolean result = _06ConfirmBox.display("Confirmation", "Are you sure you want to do this?");
       System.out.println(result);
     });
 
