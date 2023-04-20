@@ -13,8 +13,8 @@ public class _06ConfirmBox {
   static boolean answer;
 
   public static boolean display(String title, String message) {
+    // define a new stage for secondary pop-up window
     Stage window = new Stage();
-
     // blocks other windows from being accessed
     window.initModality(Modality.APPLICATION_MODAL);
     window.setTitle(title);

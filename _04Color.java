@@ -27,8 +27,8 @@ public class _04Color extends Application {
     Color color4 = Color.rgb(255, 0, 255, 0.5);
     Color color5 = Color.grayRgb(255);
     Color color6 = Color.grayRgb(255, 0.5);
-    Color color7 = Color.hsb(1.0, 0.5, 0.8);
-    Color color8 = Color.hsb(1.0, 0.5, 0.8, 0.5);
+    Color color7 = Color.hsb(270.0, 0.5, 0.8);
+    Color color8 = Color.hsb(270.0, 0.5, 0.8, 0.5);
     Color color9 = Color.color(1.0, 0.0, 1.0);
     Color color10 = Color.color(1.0, 0.0, 1.0, 0.5);
 
