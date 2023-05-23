@@ -33,7 +33,7 @@ public class _10Main extends Application {
         if (now - previous > 10_000_000) {
           previous = now;
 
-          // create 333 eyes, but stagger them to not all start at once
+          // create 100 eyes, but stagger them to not all start at once
           if (eyes.size() < 100) {
             int x = (int) (Math.random() * 800);
             int y = (int) (Math.random() * 800);
