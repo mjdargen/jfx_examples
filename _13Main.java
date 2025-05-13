@@ -9,6 +9,16 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 
 public class _13Main extends Application {
   private static int interval = (int) (1.0 / 60.0 * 1_000_000_000);
@@ -18,10 +28,46 @@ public class _13Main extends Application {
   @Override
   public void start(Stage primaryStage) {
 
-    // initialize javafx stuff
-    Group group = new Group();
-    Scene scene = new Scene(group, 600, 600);
+    // Root layout with vertical spacing
+    VBox verticalContainer = new VBox(20);
+    verticalContainer.setAlignment(Pos.CENTER);
+
+    // Horizontal layout for player stats
+    HBox playersContainer = new HBox(200);
+    playersContainer.setAlignment(Pos.CENTER);
+
+    // Black background definition
+    BackgroundFill blackBG = new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY);
+
+    // Player 1 stats
+    VBox p1Container = new VBox(20);
+    Label p1Label = new Label("Player 1 Stats: ");
+    Label p1HealthLabel = new Label("Health: ");
+    ProgressBar p1HealthBar = new ProgressBar(80 / 100.0);
+    p1Container.getChildren().addAll(p1Label, p1HealthLabel, p1HealthBar);
+
+    // Player 2 stats
+    VBox p2Container = new VBox(20);
+    Label p2Label = new Label("Player 2 Stats: ");
+    Label p2HealthLabel = new Label("Health: ");
+    ProgressBar p2HealthBar = new ProgressBar(90 / 100.0);
+    p2Container.getChildren().addAll(p2Label, p2HealthLabel, p2HealthBar);
+
+    // Add both players to HBox
+    playersContainer.getChildren().addAll(p1Container, p2Container);
+
+    // Game area pane
+    Pane pane = new Pane();
+    pane.setPrefWidth(600);
+    pane.setPrefHeight(600);
+    pane.setBackground(new Background(blackBG));
+
+    // Assemble scene layout
+    verticalContainer.getChildren().addAll(pane, playersContainer);
+    Scene scene = new Scene(verticalContainer);
     scene.setFill(Color.BLACK);
+
+    // Set up and show stage
     primaryStage.setTitle("Game Example");
     primaryStage.setScene(scene);
     primaryStage.show();
@@ -34,12 +80,12 @@ public class _13Main extends Application {
     platform2.setFill(Color.WHITE);
     platforms.add(platform1);
     platforms.add(platform2);
-    group.getChildren().add(platform1);
-    group.getChildren().add(platform2);
+    pane.getChildren().add(platform1);
+    pane.getChildren().add(platform2);
 
     // initialize player
     _13Character player = new _13Character(300, 20, 20, 20, Color.LIMEGREEN);
-    group.getChildren().add(player);
+    pane.getChildren().add(player);
 
     // keeps track of which buttons are pressed to check in animation loop
     // keyboard button pressed event handler
