@@ -3,8 +3,8 @@ package jfx_examples;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
 import javafx.geometry.Pos;
 
 public class _05Main extends Application {

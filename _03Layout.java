@@ -3,15 +3,10 @@ package jfx_examples;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.TilePane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.Button;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
 import javafx.geometry.Pos;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Label;
 
 public class _03Layout extends Application {
   static int sceneNum = 0;

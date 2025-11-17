@@ -3,13 +3,10 @@ package jfx_examples;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.shape.Rectangle;
 
 public class _04Color extends Application {

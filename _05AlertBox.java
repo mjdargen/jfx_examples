@@ -1,12 +1,11 @@
 package jfx_examples;
 
-import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
+import javafx.geometry.Pos;
 import javafx.stage.Modality;
-import javafx.scene.control.Label;
 
 public class _05AlertBox {
 
