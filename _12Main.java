@@ -1,11 +1,11 @@
 package jfx_examples;
 
 import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
+import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 
 // The main class for the pixel art application
