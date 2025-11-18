@@ -11,12 +11,11 @@ import javafx.geometry.Pos;
 import java.io.File;
 import java.io.FileInputStream;
 
-public class _11SlideShow extends Application {
+public class _12SlideShow extends Application {
   private static int sceneNum = 0;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
-    primaryStage.setTitle("SlideShow");
 
     // get all image file names
     String path = "./jfx_examples/images/";
@@ -51,6 +50,7 @@ public class _11SlideShow extends Application {
       scenes[i] = new Scene(layout, 400, 400);
     }
 
+    primaryStage.setTitle("SlideShow");
     primaryStage.setScene(scenes[sceneNum]);
     primaryStage.show();
 

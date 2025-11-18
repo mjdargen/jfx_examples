@@ -9,7 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 
 // The main class for the pixel art application
-public class _12Main extends Application {
+public class _16Main extends Application {
 
   @Override
   // Starting point of the application
@@ -19,7 +19,7 @@ public class _12Main extends Application {
     Label title = new Label("Pixel Art");
 
     // Creating the pixel art board
-    _12PixelArt board = new _12PixelArt();
+    _16PixelArt board = new _16PixelArt();
 
     // Color picker to select the drawing color
     ColorPicker colorPicker = new ColorPicker();

@@ -14,26 +14,10 @@ public class _03Layout extends Application {
   @Override
   public void start(Stage primaryStage) {
 
-    // define scenes and containers
-    Scene[] scenes = new Scene[3];
-    VBox[] sceneContainers = new VBox[scenes.length];
-    Button[] changeSceneBtn = new Button[scenes.length];
-    for (int i = 0; i < scenes.length; i++) {
-      sceneContainers[i] = new VBox(20);
-      sceneContainers[i].setAlignment(Pos.CENTER);
-      scenes[i] = new Scene(sceneContainers[i], 300, 250);
-      changeSceneBtn[i] = new Button();
-      changeSceneBtn[i].setText("Change Scene");
-      String scene = "" + i;
-      changeSceneBtn[i].setOnAction(e -> {
-        sceneNum = (sceneNum + 1) % scenes.length;
-        primaryStage.setScene(scenes[sceneNum]);
-        primaryStage.show();
-        System.out.println("Changing to scene " + scene);
-      });
-    }
+    VBox sceneContainer = new VBox(20);
+    sceneContainer.setAlignment(Pos.CENTER);
 
-    // scene 0
+    // top
     Label label1 = new Label();
     label1.setText("This is an example.");
     Label label2 = new Label();
@@ -57,12 +41,12 @@ public class _03Layout extends Application {
     Separator sep = new Separator(Orientation.HORIZONTAL);
 
     VBox vBox = new VBox(20);
-    vBox.getChildren().addAll(hBox1, hBox2, sep, changeSceneBtn[0]);
+    vBox.getChildren().addAll(hBox1, hBox2, sep);
     vBox.setAlignment(Pos.CENTER);
 
-    sceneContainers[0].getChildren().addAll(vBox);
+    sceneContainer.getChildren().add(vBox);
 
-    // scene 1
+    // mid
     final int cols = 4;
     final int rows = 4;
     Button[] buttons = new Button[cols * rows];
@@ -84,27 +68,27 @@ public class _03Layout extends Application {
     HBox gridContainer = new HBox(20);
     gridContainer.setAlignment(Pos.CENTER);
     gridContainer.getChildren().add(gridPane);
-    sceneContainers[1].getChildren().addAll(gridContainer, changeSceneBtn[1]);
+    sceneContainer.getChildren().add(gridContainer);
 
-    // scene 2
+    // bottom
     Button button1 = new Button("Button 1");
     Button button2 = new Button("Button Number 2");
     Button button3 = new Button("Button No 3");
     Button button4 = new Button("Button No 4");
     Button button5 = new Button("Button 5");
-    Button button6 = new Button("Button Number 6");
 
     TilePane tilePane = new TilePane();
-    tilePane.getChildren().addAll(button1, button2, button3, button4, button5, button6);
+    tilePane.getChildren().addAll(button1, button2, button3, button4, button5);
     tilePane.setHgap(10);
     tilePane.setVgap(10);
     tilePane.setTileAlignment(Pos.TOP_LEFT);
 
-    sceneContainers[2].getChildren().addAll(tilePane, changeSceneBtn[2]);
+    sceneContainer.getChildren().add(tilePane);
 
     // show first scene
+    Scene scene = new Scene(sceneContainer);
     primaryStage.setTitle("Layout Example");
-    primaryStage.setScene(scenes[0]);
+    primaryStage.setScene(scene);
     primaryStage.show();
   }
 

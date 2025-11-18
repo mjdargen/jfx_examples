@@ -6,11 +6,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.input.MouseButton;
 
 // Custom GridPane for pixel art creation
-public class _12PixelArt extends GridPane {
+public class _16PixelArt extends GridPane {
   private Color activeColor; // Current active drawing color
 
   // Constructor for PixelArt
-  public _12PixelArt() {
+  public _16PixelArt() {
     super();
     // Set default active color to white
     activeColor = Color.WHITE;
