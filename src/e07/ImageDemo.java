@@ -21,7 +21,7 @@ public class ImageDemo extends Application {
 
     // Load from a file path on disk
     // Make sure the path is correct relative to where you run the program
-    String path = "./jfx_examples/images/parrot.png";
+    String path = "./src/images/parrot.png";
     FileInputStream inputFile = new FileInputStream(path);
     Image image = new Image(inputFile);
     ImageView imageView = new ImageView(image);

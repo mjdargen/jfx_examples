@@ -14,7 +14,7 @@ public class CSSDemo extends Application {
   public void start(Stage primaryStage) throws Exception {
 
     // get all audio file names
-    String path = "./audio/";
+    String path = "./src/audio/";
     // works but sorts in alphabetical order, not chronological
     // File audioDir = new File(path);
     // String[] fileNames = audioDir.list();

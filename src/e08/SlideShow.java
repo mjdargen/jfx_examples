@@ -16,14 +16,14 @@ public class SlideShow extends Application {
   public void start(Stage primaryStage) throws Exception {
 
     // get all image file names
-    String path = "./jfx_examples/images/";
+    String path = "./src/images/";
     File imgDir = new File(path);
     String[] fileNames = imgDir.list();
 
     // create a scene for each image
     Scene[] scenes = new Scene[fileNames.length];
     for (int i = 0; i < scenes.length; i++) {
-      FileInputStream input = new FileInputStream("./jfx_examples/images/" + fileNames[i]);
+      FileInputStream input = new FileInputStream(path + fileNames[i]);
       Image image = new Image(input);
       ImageView imageView = new ImageView(image);
 
