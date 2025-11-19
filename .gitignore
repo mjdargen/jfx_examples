@@ -1,6 +1,15 @@
 # Custom ignores
-# audio
-[!_]*.java
+
+# Ignore Java source files ONLY in the root folder
+/*.java
+/*.css
+/*.fxml
+
+# Allow them inside subfolders
+!**/*.java
+!**/*.css
+!**/*.fxml
+
 
 # Compiled class file
 *.class
