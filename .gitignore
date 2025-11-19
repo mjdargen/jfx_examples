@@ -1,15 +1,12 @@
-# Custom ignores
-
+# Custom ignore
 # Ignore Java source files ONLY in the root folder
 /*.java
 /*.css
 /*.fxml
-
-# Allow them inside subfolders
-!**/*.java
-!**/*.css
-!**/*.fxml
-
+# Re-allow them ONLY in subdirectories, not in root
+!*/**/*.java
+!*/**/*.css
+!*/**/*.fxml
 
 # Compiled class file
 *.class
