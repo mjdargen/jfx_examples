@@ -1,13 +1,12 @@
 package e18;
 
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.input.KeyCode;
-import javafx.scene.shape.Rectangle;
+import java.util.*;
 import javafx.geometry.Bounds;
 import javafx.scene.image.ImageView;
-
-import java.util.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 /**
  * The GameWorld class manages all game objects, user input,
@@ -20,14 +19,13 @@ public class GameWorld extends Pane {
 
   private static final String TMX_PATH = "src/e18/maps/platformer.tmx";
   private static final double TILE_SCALE = 2.0;
-  private static final String COLLISION_LAYER_NAME = "platforms";
 
   private Player player;
   private Set<KeyCode> keys = new HashSet<>();
-  private List<Rectangle> platforms = new ArrayList<>();
+  private List<Rectangle> collisionObjects = new ArrayList<>();
 
   // layer name -> tiles
-  private Map<String, List<ImageView>> tileLayers = new LinkedHashMap<>();
+  private Map<String, List<Tile>> tileLayers = new LinkedHashMap<>();
 
   /**
    * Initializes the world with a player and a tile map from Tiled.
@@ -50,25 +48,24 @@ public class GameWorld extends Pane {
    */
   private void loadTileMap() {
     try {
-      Map<String, List<ImageView>> loaded = TiledMapLoader.loadTileMap(TMX_PATH, TILE_SCALE);
+      Map<String, List<Tile>> loaded = TiledMapLoader.loadTileMap(TMX_PATH, TILE_SCALE);
       tileLayers.putAll(loaded);
 
       // draw layers in their insertion order
-      for (List<ImageView> layerTiles : tileLayers.values()) {
-        getChildren().addAll(layerTiles);
+      for (List<Tile> layerTiles : tileLayers.values()) {
+          for (Tile tile: layerTiles) {
+            getChildren().addAll(tile.getTileImage());
+          }
       }
 
+      List<Tile> platforms = tileLayers.get("platforms");
+      List<Tile> obstacles = tileLayers.get("obstacles");
+      List<Tile> mushrooms = tileLayers.get("mushrooms");
+
       // create platform rectangles from the layer named "Platforms"
-      List<ImageView> solidTiles = tileLayers.get(COLLISION_LAYER_NAME);
-      if (solidTiles != null) {
-        for (ImageView iv : solidTiles) {
-          Rectangle r = new Rectangle(
-              iv.getLayoutX(),
-              iv.getLayoutY(),
-              iv.getFitWidth(),
-              iv.getFitHeight());
-          r.setFill(Color.TRANSPARENT); // collision only
-          platforms.add(r);
+      if (platforms != null) {
+        for (Tile tile : platforms) {
+          collisionObjects.add(tile.getCollisionRectangle());
         }
       }
     } catch (Exception e) {
@@ -80,7 +77,7 @@ public class GameWorld extends Pane {
   /**
    * Optional accessor if you ever want to inspect tiles by layer.
    */
-  public Map<String, List<ImageView>> getTileLayers() {
+  public Map<String, List<Tile>> getTileLayers() {
     return tileLayers;
   }
 
@@ -136,9 +133,9 @@ public class GameWorld extends Pane {
   private void checkPlatformCollisions(Bounds prevPlayerBounds) {
     boolean landed = false;
 
-    for (Rectangle platform : platforms) {
+    for (Rectangle collisionObject : collisionObjects) {
       Bounds playerBounds = player.getBoundsInParent();
-      Bounds platBounds = platform.getBoundsInParent();
+      Bounds platBounds = collisionObject.getBoundsInParent();
 
       // Check if horizontally overlapping with the platform
       boolean horizontalOverlap = playerBounds.getMaxX() > platBounds.getMinX()

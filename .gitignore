@@ -1,6 +1,9 @@
 # Custom ignore
 /src/mine
 /bin
+/out
+/.vscode
+/.idea
 
 # Compiled class file
 *.class

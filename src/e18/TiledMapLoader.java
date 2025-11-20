@@ -6,17 +6,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Loads a Tiled TMX map (with external TSX tilesets) and returns
@@ -73,7 +70,7 @@ public final class TiledMapLoader {
    * @param tmxPath path to the TMX file relative to the working directory
    * @param scale   global scale factor for the map tiles
    */
-  public static Map<String, List<ImageView>> loadTileMap(String tmxPath, double scale) throws Exception {
+  public static Map<String, List<Tile>> loadTileMap(String tmxPath, double scale) throws Exception {
     File tmxFile = new File(tmxPath);
     if (!tmxFile.exists()) {
       throw new IllegalArgumentException("TMX file not found: " + tmxFile.getAbsolutePath());
@@ -127,7 +124,7 @@ public final class TiledMapLoader {
     List<Integer> sortedFirstGids = new ArrayList<>(tilesetsByFirstGid.keySet());
     Collections.sort(sortedFirstGids);
 
-    Map<String, List<ImageView>> layersMap = new LinkedHashMap<>();
+    Map<String, List<Tile>> layersMap = new LinkedHashMap<>();
 
     // Tile layers only
     NodeList layerNodes = root.getElementsByTagName("layer");
@@ -146,7 +143,7 @@ public final class TiledMapLoader {
       }
 
       String[] rowStrings = dataElem.getTextContent().trim().split("\\s*\\n\\s*");
-      List<ImageView> tilesForLayer = new ArrayList<>();
+      List<Tile> tilesForLayer = new ArrayList<>();
 
       for (int row = 0; row < height; row++) {
         String[] colStrings = rowStrings[row].trim().split(",");
@@ -221,7 +218,8 @@ public final class TiledMapLoader {
             // diagonal flip not handled yet
           }
 
-          tilesForLayer.add(iv);
+          Tile tile = new Tile(iv);
+          tilesForLayer.add(tile);
         }
       }
 
