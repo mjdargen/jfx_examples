@@ -1,3 +1,5 @@
+package e12;
+
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.geometry.Pos;

@@ -1,3 +1,5 @@
+package e18;
+
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.Bounds;

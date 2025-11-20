@@ -1,3 +1,5 @@
+package e12;
+
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 

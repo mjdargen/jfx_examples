@@ -1,208 +1,254 @@
-import org.w3c.dom.*;
+package e18;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.FileInputStream;
-import java.util.*;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 
 /**
- * TiledMapLoader
- * Usage:
- * TiledMap map = TiledMapLoader.load("maps/level.tmx", 1.0);
+ * Loads a Tiled TMX map (with external TSX tilesets) and returns
+ * a map from layer name to a list of ImageView tiles.
+ *
+ * Supports tile layers with CSV encoding and spacing / margin.
+ * Only tile layers are handled.
  */
-public class TiledMapLoader {
+public final class TiledMapLoader {
 
-  public static TiledMap load(String tmxPath, double globalScale) throws Exception {
-    Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(tmxPath);
+  private static final int FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+  private static final int FLIPPED_VERTICALLY_FLAG = 0x40000000;
+  private static final int FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+
+  private static class Tileset {
+    final int firstGid;
+    final Image image;
+    final int tileWidth;
+    final int tileHeight;
+    final int sheetW;
+    final int sheetH;
+    final int spacing;
+    final int margin;
+
+    Tileset(int firstGid,
+        Image image,
+        int tileWidth,
+        int tileHeight,
+        int sheetW,
+        int sheetH,
+        int spacing,
+        int margin) {
+      this.firstGid = firstGid;
+      this.image = image;
+      this.tileWidth = tileWidth;
+      this.tileHeight = tileHeight;
+      this.sheetW = sheetW;
+      this.sheetH = sheetH;
+      this.spacing = spacing;
+      this.margin = margin;
+    }
+  }
+
+  private TiledMapLoader() {
+    // utility class
+  }
+
+  /**
+   * Loads a TMX file and returns a map from layer name to a list of ImageView
+   * tiles.
+   *
+   * Tiles are positioned and scaled so you can add them directly to a Pane.
+   *
+   * @param tmxPath path to the TMX file relative to the working directory
+   * @param scale   global scale factor for the map tiles
+   */
+  public static Map<String, List<ImageView>> loadTileMap(String tmxPath, double scale) throws Exception {
+    File tmxFile = new File(tmxPath);
+    if (!tmxFile.exists()) {
+      throw new IllegalArgumentException("TMX file not found: " + tmxFile.getAbsolutePath());
+    }
+
+    String mapDir = tmxFile.getParent();
+    if (mapDir == null) {
+      mapDir = ".";
+    }
+
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document doc = db.parse(tmxFile);
     Element root = doc.getDocumentElement();
 
     int mapTileWidth = Integer.parseInt(root.getAttribute("tilewidth"));
     int mapTileHeight = Integer.parseInt(root.getAttribute("tileheight"));
 
-    // Load tilesets. Use TreeMap so we can find the tileset with floorKey easily.
-    TreeMap<Integer, TilesetInfo> tilesets = new TreeMap<>();
-
+    // Load tilesets from TSX
+    Map<Integer, Tileset> tilesetsByFirstGid = new LinkedHashMap<>();
     NodeList tilesetNodes = root.getElementsByTagName("tileset");
     for (int i = 0; i < tilesetNodes.getLength(); i++) {
-      Element ts = (Element) tilesetNodes.item(i);
-      int firstgid = Integer.parseInt(ts.getAttribute("firstgid"));
-      String source = ts.getAttribute("source"); // relative path to .tsx
-      // parse tsx
-      String tsxFullPath = resolveRelativePath(tmxPath, source);
-      TilesetInfo info = loadTSX(tsxFullPath);
-      tilesets.put(firstgid, info);
+      Element tsElem = (Element) tilesetNodes.item(i);
+      int firstGid = Integer.parseInt(tsElem.getAttribute("firstgid"));
+      String source = tsElem.getAttribute("source");
+
+      File tsxFile = new File(mapDir, source);
+      Document tsxDoc = db.parse(tsxFile);
+      Element tsRoot = tsxDoc.getDocumentElement();
+
+      int tileWidth = Integer.parseInt(tsRoot.getAttribute("tilewidth"));
+      int tileHeight = Integer.parseInt(tsRoot.getAttribute("tileheight"));
+      int spacing = getIntAttributeOrDefault(tsRoot, "spacing", 0);
+      int margin = getIntAttributeOrDefault(tsRoot, "margin", 0);
+
+      Element imageElem = (Element) tsRoot.getElementsByTagName("image").item(0);
+      String imageSource = imageElem.getAttribute("source");
+      File imageFile = new File(tsxFile.getParentFile(), imageSource);
+
+      // Important for pixel art: smoothing off on the base sheet
+      Image image = new Image(imageFile.toURI().toString(), 0, 0, false, false);
+
+      int sheetW = (int) ((image.getWidth() - 2 * margin + spacing) / (tileWidth + spacing));
+      int sheetH = (int) ((image.getHeight() - 2 * margin + spacing) / (tileHeight + spacing));
+
+      Tileset tileset = new Tileset(firstGid, image, tileWidth, tileHeight,
+          sheetW, sheetH, spacing, margin);
+      tilesetsByFirstGid.put(firstGid, tileset);
     }
 
-    Map<String, List<TileSprite>> layers = new LinkedHashMap<>();
-    Map<String, List<Shape>> objectLayers = new LinkedHashMap<>();
+    List<Integer> sortedFirstGids = new ArrayList<>(tilesetsByFirstGid.keySet());
+    Collections.sort(sortedFirstGids);
 
+    Map<String, List<ImageView>> layersMap = new LinkedHashMap<>();
+
+    // Tile layers only
     NodeList layerNodes = root.getElementsByTagName("layer");
     for (int i = 0; i < layerNodes.getLength(); i++) {
-      Element layer = (Element) layerNodes.item(i);
-      String name = layer.getAttribute("name");
-      int width = Integer.parseInt(layer.getAttribute("width"));
-      int height = Integer.parseInt(layer.getAttribute("height"));
+      Element layerElem = (Element) layerNodes.item(i);
+      String layerName = layerElem.getAttribute("name");
+      int width = Integer.parseInt(layerElem.getAttribute("width"));
+      int height = Integer.parseInt(layerElem.getAttribute("height"));
 
-      Element dataEl = (Element) layer.getElementsByTagName("data").item(0);
-      String csv = dataEl.getTextContent().trim();
-      String[] rows = csv.split("\\r?\\n");
-
-      List<TileSprite> sprites = new ArrayList<>();
-
-      for (int r = 0; r < height; r++) {
-        String row = rows[r].trim();
-        String[] cols = row.split(",");
-        for (int c = 0; c < width; c++) {
-          String cell = cols[c].trim();
-          if (cell.isEmpty())
-            continue;
-          long gidLong = Long.parseLong(cell);
-
-          if (gidLong == 0)
-            continue;
-
-          boolean flipH = (gidLong & 0x80000000L) != 0;
-          boolean flipV = (gidLong & 0x40000000L) != 0;
-          boolean flipD = (gidLong & 0x20000000L) != 0;
-          long gid = gidLong & 0x0FFFFFFFL;
-
-          // find tileset
-          Integer tsKey = tilesets.floorKey((int) gid);
-          if (tsKey == null)
-            continue; // should not happen
-          TilesetInfo tsInfo = tilesets.get(tsKey);
-          int localId = (int) (gid - tsKey);
-
-          int tx = tsInfo.margin + (localId % tsInfo.sheetCols) * (tsInfo.tileWidth + tsInfo.spacing);
-          int ty = tsInfo.margin + (localId / tsInfo.sheetCols) * (tsInfo.tileHeight + tsInfo.spacing);
-
-          WritableImage tileImg = new WritableImage(
-              tsInfo.image.getPixelReader(),
-              tx, ty, tsInfo.tileWidth, tsInfo.tileHeight);
-
-          // compute scale to match map tile size
-          double tileScaleX = (double) mapTileWidth / tsInfo.tileWidth;
-          double tileScaleY = (double) mapTileHeight / tsInfo.tileHeight;
-
-          double finalWidth = tsInfo.tileWidth * tileScaleX * globalScale;
-          double finalHeight = tsInfo.tileHeight * tileScaleY * globalScale;
-
-          double drawX = c * mapTileWidth * globalScale;
-          double drawY = r * mapTileHeight * globalScale;
-
-          TileSprite sprite = new TileSprite(tileImg, drawX, drawY, finalWidth, finalHeight, flipH, flipV, flipD);
-          sprites.add(sprite);
-        }
+      Element dataElem = (Element) layerElem.getElementsByTagName("data").item(0);
+      String encoding = dataElem.getAttribute("encoding");
+      if (encoding != null && !encoding.isEmpty()
+          && !"csv".equalsIgnoreCase(encoding)) {
+        throw new IllegalStateException(
+            "Only CSV encoded layer data is supported for now. Found: " + encoding);
       }
-      layers.put(name, sprites);
-    }
 
-    // Parse objectgroup layers
-    NodeList objectGroupNodes = root.getElementsByTagName("objectgroup");
-    for (int i = 0; i < objectGroupNodes.getLength(); i++) {
-      Element og = (Element) objectGroupNodes.item(i);
-      String ogName = og.getAttribute("name");
-      List<Shape> shapes = new ArrayList<>();
+      String[] rowStrings = dataElem.getTextContent().trim().split("\\s*\\n\\s*");
+      List<ImageView> tilesForLayer = new ArrayList<>();
 
-      NodeList objectNodes = og.getElementsByTagName("object");
-      for (int j = 0; j < objectNodes.getLength(); j++) {
-        Element obj = (Element) objectNodes.item(j);
-        double x = Double.parseDouble(obj.getAttribute("x")) * globalScale;
-        double y = Double.parseDouble(obj.getAttribute("y")) * globalScale;
-
-        // width and height if present
-        String widthAttr = obj.getAttribute("width");
-        String heightAttr = obj.getAttribute("height");
-
-        // tile object (has gid)
-        if (obj.hasAttribute("gid")) {
-          long gidLong = Long.parseLong(obj.getAttribute("gid"));
-          long gid = gidLong & 0x0FFFFFFFL;
-          Integer tsKey = tilesets.floorKey((int) gid);
-          if (tsKey != null) {
-            TilesetInfo tsInfo = tilesets.get(tsKey);
-            // size scaled to map tile size
-            double tileScaleX = (double) mapTileWidth / tsInfo.tileWidth;
-            double tileScaleY = (double) mapTileHeight / tsInfo.tileHeight;
-            double w = tsInfo.tileWidth * tileScaleX * globalScale;
-            double h = tsInfo.tileHeight * tileScaleY * globalScale;
-            Rectangle rct = new Rectangle(x, y - h, w, h); // Tiled y is bottom for tile objects
-            shapes.add(rct);
+      for (int row = 0; row < height; row++) {
+        String[] colStrings = rowStrings[row].trim().split(",");
+        for (int col = 0; col < width; col++) {
+          String token = colStrings[col].trim();
+          if (token.isEmpty()) {
+            continue;
           }
-          continue;
-        }
 
-        if (!widthAttr.isEmpty() && !heightAttr.isEmpty()) {
-          double w = Double.parseDouble(widthAttr) * globalScale;
-          double h = Double.parseDouble(heightAttr) * globalScale;
-          // Tiled object y is top-left for rectangles; adjust as needed
-          Rectangle rct = new Rectangle(x, y, w, h);
-          shapes.add(rct);
-          continue;
-        }
-
-        // polygon object
-        NodeList polygonNodes = obj.getElementsByTagName("polygon");
-        if (polygonNodes.getLength() > 0) {
-          Element polyEl = (Element) polygonNodes.item(0);
-          String pts = polyEl.getAttribute("points").trim();
-          String[] pairs = pts.split(" ");
-          List<Double> coords = new ArrayList<>();
-          for (String p : pairs) {
-            if (p.isEmpty())
-              continue;
-            String[] xy = p.split(",");
-            double px = Double.parseDouble(xy[0]) * globalScale + x;
-            double py = Double.parseDouble(xy[1]) * globalScale + y;
-            coords.add(px);
-            coords.add(py);
+          long rawGid = Long.parseLong(token);
+          if (rawGid == 0) {
+            continue;
           }
-          double[] arr = coords.stream().mapToDouble(Double::doubleValue).toArray();
-          Polygon polygon = new Polygon(arr);
-          shapes.add(polygon);
-          continue;
+
+          boolean flippedH = (rawGid & FLIPPED_HORIZONTALLY_FLAG) != 0;
+          boolean flippedV = (rawGid & FLIPPED_VERTICALLY_FLAG) != 0;
+          boolean flippedD = (rawGid & FLIPPED_DIAGONALLY_FLAG) != 0;
+
+          int gid = (int) (rawGid & 0x0FFFFFFF);
+
+          Tileset tileset = findTilesetForGid(tilesetsByFirstGid, sortedFirstGids, gid);
+          if (tileset == null) {
+            continue;
+          }
+
+          int localId = gid - tileset.firstGid;
+
+          int tsx = tileset.margin
+              + (localId % tileset.sheetW) * (tileset.tileWidth + tileset.spacing);
+          int tsy = tileset.margin
+              + (localId / tileset.sheetW) * (tileset.tileHeight + tileset.spacing);
+
+          WritableImage tileImage = new WritableImage(
+              tileset.image.getPixelReader(),
+              tsx,
+              tsy,
+              tileset.tileWidth,
+              tileset.tileHeight);
+
+          // Match Python logic
+          // First scale tileset tile to map tile size
+          double tileScaleX = (double) mapTileWidth / tileset.tileWidth;
+          double tileScaleY = (double) mapTileHeight / tileset.tileHeight;
+
+          double baseWidth = tileset.tileWidth * tileScaleX;
+          double baseHeight = tileset.tileHeight * tileScaleY;
+
+          // Then apply global scale like Actor.scale
+          double finalWidth = baseWidth * scale;
+          double finalHeight = baseHeight * scale;
+
+          double x = mapTileWidth * col * scale;
+          double y = mapTileHeight * row * scale;
+
+          ImageView iv = new ImageView(tileImage);
+          iv.setFitWidth(finalWidth);
+          iv.setFitHeight(finalHeight);
+          iv.setPreserveRatio(false);
+          iv.setSmooth(false); // nearest neighbor for pixel art
+          iv.setLayoutX(x);
+          iv.setLayoutY(y);
+
+          if (flippedH) {
+            iv.setScaleX(-1);
+            iv.setLayoutX(x + finalWidth);
+          }
+          if (flippedV) {
+            iv.setScaleY(-1);
+            iv.setLayoutY(y + finalHeight);
+          }
+          if (flippedD) {
+            // diagonal flip not handled yet
+          }
+
+          tilesForLayer.add(iv);
         }
       }
 
-      objectLayers.put(ogName, shapes);
+      layersMap.put(layerName, tilesForLayer);
     }
 
-    return new TiledMap(layers, objectLayers, mapTileWidth, mapTileHeight);
+    return layersMap;
   }
 
-  private static TilesetInfo loadTSX(String tsxPath) throws Exception {
-    Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(tsxPath);
-    Element root = doc.getDocumentElement();
-
-    int tileWidth = Integer.parseInt(root.getAttribute("tilewidth"));
-    int tileHeight = Integer.parseInt(root.getAttribute("tileheight"));
-    int margin = root.hasAttribute("margin") ? Integer.parseInt(root.getAttribute("margin")) : 0;
-    int spacing = root.hasAttribute("spacing") ? Integer.parseInt(root.getAttribute("spacing")) : 0;
-
-    Element imageEl = (Element) root.getElementsByTagName("image").item(0);
-    String imagePath = imageEl.getAttribute("source");
-    String tsxFolder = tsxPath.substring(0, tsxPath.lastIndexOf('/') + 1);
-    String fullImagePath = tsxFolder + imagePath;
-
-    Image sheet = new Image(new FileInputStream(fullImagePath));
-    int sheetCols = (int) ((sheet.getWidth() - 2 * margin + spacing) / (tileWidth + spacing));
-    int sheetRows = (int) ((sheet.getHeight() - 2 * margin + spacing) / (tileHeight + spacing));
-
-    return new TilesetInfo(sheet, tileWidth, tileHeight, margin, spacing, sheetCols, sheetRows);
+  private static Tileset findTilesetForGid(Map<Integer, Tileset> tilesetsByFirstGid,
+      List<Integer> sortedFirstGids,
+      int gid) {
+    Tileset result = null;
+    for (int first : sortedFirstGids) {
+      if (first <= gid) {
+        result = tilesetsByFirstGid.get(first);
+      } else {
+        break;
+      }
+    }
+    return result;
   }
 
-  // Resolve a relative path referenced by the tmx file. tmxPath is the full path
-  // to the tmx file.
-  private static String resolveRelativePath(String tmxPath, String relative) {
-    int idx = tmxPath.lastIndexOf('/');
-    if (idx < 0)
-      idx = tmxPath.lastIndexOf('\\');
-    if (idx < 0)
-      return relative;
-    String base = tmxPath.substring(0, idx + 1);
-    return base + relative;
+  private static int getIntAttributeOrDefault(Element elem, String attr, int defaultValue) {
+    if (elem.hasAttribute(attr) && !elem.getAttribute(attr).isEmpty()) {
+      return Integer.parseInt(elem.getAttribute(attr));
+    }
+    return defaultValue;
   }
 }

@@ -1,53 +1,87 @@
+package e18;
+
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.Bounds;
+import javafx.scene.image.ImageView;
+
 import java.util.*;
 
 /**
  * The GameWorld class manages all game objects, user input,
  * physics updates, and collision detection.
+ *
+ * This version loads a Tiled TMX map and uses the layer
+ * named "Platforms" as solid collision geometry.
  */
 public class GameWorld extends Pane {
+
+  private static final String TMX_PATH = "src/e18/maps/platformer.tmx";
+  private static final double TILE_SCALE = 2.0;
+  private static final String COLLISION_LAYER_NAME = "platforms";
 
   private Player player;
   private Set<KeyCode> keys = new HashSet<>();
   private List<Rectangle> platforms = new ArrayList<>();
 
+  // layer name -> tiles
+  private Map<String, List<ImageView>> tileLayers = new LinkedHashMap<>();
+
   /**
-   * Initializes the world with a player and several platforms.
+   * Initializes the world with a player and a tile map from Tiled.
    */
   public GameWorld(int width, int height) {
     setPrefSize(width, height);
     setStyle("-fx-background-color: black;");
 
-    // Create player near the top so gravity acts immediately
-    player = new Player(100, 50, 40, 50, Color.ORANGE);
-    getChildren().add(player);
+    // load tiles first so the player is drawn on top
+    loadTileMap();
 
-    // Create several rectangular platforms including the ground
-    createPlatforms(width, height);
+    // Create player near the top so gravity acts immediately
+    player = new Player(400, 50, 40, 50, Color.ORANGE);
+    getChildren().add(player);
   }
 
   /**
-   * Adds the ground and several floating platforms.
+   * Loads the TMX map, adds all tile layers for drawing,
+   * and builds collision rectangles from the "Platforms" layer.
    */
-  private void createPlatforms(int worldWidth, int worldHeight) {
-    Rectangle ground = new Rectangle(0, worldHeight - 50, worldWidth, 50);
-    ground.setFill(Color.DARKGREEN);
+  private void loadTileMap() {
+    try {
+      Map<String, List<ImageView>> loaded = TiledMapLoader.loadTileMap(TMX_PATH, TILE_SCALE);
+      tileLayers.putAll(loaded);
 
-    Rectangle p1 = new Rectangle(150, 450, 150, 20);
-    p1.setFill(Color.DARKGRAY);
+      // draw layers in their insertion order
+      for (List<ImageView> layerTiles : tileLayers.values()) {
+        getChildren().addAll(layerTiles);
+      }
 
-    Rectangle p2 = new Rectangle(400, 350, 200, 20);
-    p2.setFill(Color.DARKGRAY);
+      // create platform rectangles from the layer named "Platforms"
+      List<ImageView> solidTiles = tileLayers.get(COLLISION_LAYER_NAME);
+      if (solidTiles != null) {
+        for (ImageView iv : solidTiles) {
+          Rectangle r = new Rectangle(
+              iv.getLayoutX(),
+              iv.getLayoutY(),
+              iv.getFitWidth(),
+              iv.getFitHeight());
+          r.setFill(Color.TRANSPARENT); // collision only
+          platforms.add(r);
+        }
+      }
+    } catch (Exception e) {
+      // If loading fails, fall back to an empty map and just use the player
+      e.printStackTrace();
+    }
+  }
 
-    Rectangle p3 = new Rectangle(650, 250, 100, 20);
-    p3.setFill(Color.DARKGRAY);
-
-    platforms.addAll(Arrays.asList(ground, p1, p2, p3));
-    getChildren().addAll(platforms);
+  /**
+   * Optional accessor if you ever want to inspect tiles by layer.
+   */
+  public Map<String, List<ImageView>> getTileLayers() {
+    return tileLayers;
   }
 
   /** Records when a key is pressed so movement continues while held down. */
@@ -62,7 +96,7 @@ public class GameWorld extends Pane {
 
   /**
    * Updates the game state once per frame.
-   * Called by the main loop in Main.java.
+   * Called by the main loop in PlatformerDemo.
    */
   public void update(double deltaTime) {
     handleInput();
@@ -96,9 +130,8 @@ public class GameWorld extends Pane {
 
   /**
    * Detects and handles vertical collisions between the player and platforms.
-   * 
-   * The player "lands" when moving downward and crossing a platform's top
-   * surface.
+   *
+   * The player lands when moving downward and crossing a platform top surface.
    */
   private void checkPlatformCollisions(Bounds prevPlayerBounds) {
     boolean landed = false;
@@ -108,8 +141,8 @@ public class GameWorld extends Pane {
       Bounds platBounds = platform.getBoundsInParent();
 
       // Check if horizontally overlapping with the platform
-      boolean horizontalOverlap = playerBounds.getMaxX() > platBounds.getMinX() &&
-          playerBounds.getMinX() < platBounds.getMaxX();
+      boolean horizontalOverlap = playerBounds.getMaxX() > platBounds.getMinX()
+          && playerBounds.getMinX() < platBounds.getMaxX();
 
       // Detect vertical crossing from above
       boolean wasAbove = prevPlayerBounds.getMaxY() <= platBounds.getMinY();
@@ -128,13 +161,4 @@ public class GameWorld extends Pane {
       player.setOnGround(false);
     }
   }
-
-  public Player getPlayer() {
-    return player;
-  }
-
-  public void setPlayer(Player player) {
-    this.player = player;
-  }
-
 }

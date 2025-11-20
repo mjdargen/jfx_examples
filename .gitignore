@@ -1,5 +1,6 @@
 # Custom ignore
-/src/mine/*
+/src/mine
+/bin
 
 # Compiled class file
 *.class

@@ -1,3 +1,5 @@
+package e04;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -5,7 +7,7 @@ import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.geometry.Pos;
 
-public class Main extends Application {
+public class MainAlert extends Application {
 
   @Override
   public void start(Stage primaryStage) {
